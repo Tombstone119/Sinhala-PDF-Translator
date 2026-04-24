@@ -2,22 +2,24 @@
 # PyInstaller spec for SinhalaTranslator
 # Build with: pyinstaller translator.spec
 
+from PyInstaller.utils.hooks import collect_all
+
 block_cipher = None
+
+# Collect all files/binaries/hidden-imports for packages that need it
+datas_qt,     bins_qt,     hidden_qt     = collect_all('PyQt6')
+datas_mupdf,  bins_mupdf,  hidden_mupdf  = collect_all('pymupdf')
 
 a = Analysis(
     ['main.py'],
     pathex=[],
-    binaries=[],
-    datas=[
-        ('fonts/NotoSansSinhala-Regular.ttf', 'fonts'),
-    ],
-    hiddenimports=[
-        'PyQt6.sip',
-        'PyQt6.QtCore',
-        'PyQt6.QtWidgets',
-        'PyQt6.QtGui',
-        'PyQt6.QtPrintSupport',
-    ],
+    binaries=bins_qt + bins_mupdf,
+    datas=(
+        [('fonts/NotoSansSinhala-Regular.ttf', 'fonts')]
+        + datas_qt
+        + datas_mupdf
+    ),
+    hiddenimports=hidden_qt + hidden_mupdf,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -26,7 +28,6 @@ a = Analysis(
     win_private_assemblies=False,
     cipher=block_cipher,
     noarchive=False,
-    collect_all=['pymupdf'],
 )
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
