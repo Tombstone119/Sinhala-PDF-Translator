@@ -1,25 +1,49 @@
 # -*- mode: python ; coding: utf-8 -*-
-# PyInstaller spec for SinhalaTranslator
 # Build with: pyinstaller translator.spec
 
-from PyInstaller.utils.hooks import collect_all
+from PyInstaller.utils.hooks import collect_all, collect_data_files
 
 block_cipher = None
 
-# Collect all files/binaries/hidden-imports for packages that need it
-datas_qt,     bins_qt,     hidden_qt     = collect_all('PyQt6')
-datas_mupdf,  bins_mupdf,  hidden_mupdf  = collect_all('pymupdf')
+# PyMuPDF registers itself under both 'fitz' and 'pymupdf' — collect both
+datas_fitz,      bins_fitz,      hidden_fitz      = collect_all('fitz')
+datas_mupdf,     bins_mupdf,     hidden_mupdf     = collect_all('pymupdf')
+datas_qt,        bins_qt,        hidden_qt        = collect_all('PyQt6')
+datas_reportlab, bins_reportlab, hidden_reportlab = collect_all('reportlab')
+datas_requests,  bins_requests,  hidden_requests  = collect_all('requests')
+
+all_datas = (
+    [('fonts/NotoSansSinhala-Regular.ttf', 'fonts')]
+    + datas_fitz
+    + datas_mupdf
+    + datas_qt
+    + datas_reportlab
+    + datas_requests
+)
+
+all_binaries = bins_fitz + bins_mupdf + bins_qt + bins_reportlab + bins_requests
+
+all_hidden = (
+    hidden_fitz
+    + hidden_mupdf
+    + hidden_qt
+    + hidden_reportlab
+    + hidden_requests
+    + [
+        'services.pdf_extractor',
+        'services.chunker',
+        'services.translator',
+        'services.pdf_writer',
+        'services.pipeline',
+    ]
+)
 
 a = Analysis(
     ['main.py'],
     pathex=[],
-    binaries=bins_qt + bins_mupdf,
-    datas=(
-        [('fonts/NotoSansSinhala-Regular.ttf', 'fonts')]
-        + datas_qt
-        + datas_mupdf
-    ),
-    hiddenimports=hidden_qt + hidden_mupdf,
+    binaries=all_binaries,
+    datas=all_datas,
+    hiddenimports=all_hidden,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -46,11 +70,11 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=False,          # No terminal window
+    console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    # icon='app.ico',       # Uncomment after adding app.ico to project root
+    # icon='app.ico',
 )
